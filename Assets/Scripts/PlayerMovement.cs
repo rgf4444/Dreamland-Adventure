@@ -139,6 +139,7 @@ public class PlayerMovement : MonoBehaviour
         foreach (Collider2D enemy in hitEnemies)
         {
             enemy.GetComponent<EnemyHealth>()?.TakeDamage(normalAttackDamage);
+            enemy.GetComponent<BossHealth>()?.TakeDamage(normalAttackDamage);
         }
 
         yield return new WaitForSeconds(0.25f);
@@ -173,6 +174,7 @@ public class PlayerMovement : MonoBehaviour
         foreach (Collider2D enemy in hitEnemies)
         {
             enemy.GetComponent<EnemyHealth>()?.TakeDamage(chargedAttackDamage);
+            enemy.GetComponent<BossHealth>()?.TakeDamage(chargedAttackDamage);
 
             if (enemy.CompareTag("Enemy"))
             {

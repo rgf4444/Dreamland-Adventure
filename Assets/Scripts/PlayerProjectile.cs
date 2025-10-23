@@ -25,6 +25,7 @@ public class PlayerProjectile : MonoBehaviour
         if (collision.CompareTag("Enemy"))
         {
             collision.GetComponent<EnemyHealth>()?.TakeDamage(damage);
+            collision.GetComponent<BossHealth>()?.TakeDamage(damage);
             Destroy(gameObject);
         }
         // Destroy when hitting a wall
