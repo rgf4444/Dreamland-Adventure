@@ -11,6 +11,11 @@ public class PlayerMovement : MonoBehaviour
     private bool isGrounded;
     private bool canMove = true;
 
+    [Header("Attack Unlock Status")]
+    public bool normalAttackEnabled = false;
+    public bool chargedAttackEnabled = false;
+    public bool rangedAttackEnabled = false;
+
     [Header("Attack Settings")]
     public float normalAttackCooldown = 0.5f;
     public float chargedAttackDuration = 2f;
@@ -109,25 +114,24 @@ public class PlayerMovement : MonoBehaviour
     {
         if (isAttacking || isKnockedBack) return;
 
-        // Normal attack (Key 1)
-        if (Input.GetKeyDown(KeyCode.Alpha1) && Time.time >= nextNormalAttackTime)
+        // Normal attack (Key 1) - only if enabled
+        if (normalAttackEnabled && Input.GetKeyDown(KeyCode.Alpha1) && Time.time >= nextNormalAttackTime)
         {
             StartCoroutine(NormalAttack());
         }
 
-        // Charged attack (Key 2)
-        if (Input.GetKeyDown(KeyCode.Alpha2) && isGrounded && Time.time >= nextChargedAttackTime)
+        // Charged attack (Key 2) - only if enabled
+        if (chargedAttackEnabled && Input.GetKeyDown(KeyCode.Alpha2) && isGrounded && Time.time >= nextChargedAttackTime)
         {
             chargedAttackCoroutine = StartCoroutine(ChargedAttack());
         }
 
-        // Ranged attack (Key 3)
-        if (Input.GetKeyDown(KeyCode.Alpha3) && Time.time >= nextRangedAttackTime)
+        // Ranged attack (Key 3) - only if enabled
+        if (rangedAttackEnabled && Input.GetKeyDown(KeyCode.Alpha3) && Time.time >= nextRangedAttackTime)
         {
             StartCoroutine(RangedAttack());
         }
     }
-
 
     private IEnumerator NormalAttack()
     {
@@ -280,5 +284,38 @@ public class PlayerMovement : MonoBehaviour
             Gizmos.color = Color.yellow;
             Gizmos.DrawWireSphere(groundCheck.position, groundCheckRadius);
         }
+    }
+
+    public void EnableNormalAttack()
+    {
+        normalAttackEnabled = true;
+        Debug.Log("Normal Attack Enabled!");
+    }
+
+    public void EnableChargedAttack()
+    {
+        chargedAttackEnabled = true;
+        Debug.Log("Charged Attack Enabled!");
+    }
+
+    public void EnableRangedAttack()
+    {
+        rangedAttackEnabled = true;
+        Debug.Log("Ranged Attack Enabled!");
+    }
+
+    public void DisableNormalAttack()
+    {
+        normalAttackEnabled = false;
+    }
+
+    public void DisableChargedAttack()
+    {
+        chargedAttackEnabled = false;
+    }
+
+    public void DisableRangedAttack()
+    {
+        rangedAttackEnabled = false;
     }
 }
