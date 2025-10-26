@@ -8,7 +8,7 @@ public class PlayerHealth : MonoBehaviour
     public Sprite emptyHeart;
 
     public int health = 5;
-    private int maxHealth;
+    public int maxHealth;
 
     private void Start()
     {
@@ -23,7 +23,7 @@ public class PlayerHealth : MonoBehaviour
         UpdateHearts();
     }
 
-    private void UpdateHearts()
+      public void UpdateHearts()
     {
         for (int i = 0; i < hearts.Length; i++)
         {

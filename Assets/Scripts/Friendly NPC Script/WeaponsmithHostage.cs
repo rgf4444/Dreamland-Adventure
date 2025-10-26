@@ -1,8 +1,8 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 
-public class WeaponSmithHostage : MonoBehaviour
+public class WeaponsmithHostage : MonoBehaviour
 {
     [Header("Weapon Smith Components")]
     public Animator WeaponSmith;
@@ -14,7 +14,8 @@ public class WeaponSmithHostage : MonoBehaviour
 
     [Header("Interaction Settings")]
     public KeyCode interactKey = KeyCode.E;
-    public float interactionRange = 1.5f;
+    public float interactionRange = 2f;
+    public GameObject interactPrompt; // Use the same type as shopkeeper
 
     [Header("Player Reference")]
     public PlayerMovement playerMovement;
@@ -25,22 +26,25 @@ public class WeaponSmithHostage : MonoBehaviour
     [Header("Next Button")]
     public Button nextButton;
 
-    [Header("Top Popup Settings")]
-    public GameObject topPopup; // The popup that appears above the weaponsmith's head (Overlay Canvas)
-    public float popupHeightOffset = 50f; // Screen space offset above the weaponsmith
-
     [Header("Thanks Popup Settings")]
-    public GameObject thanksPopup; // The "Thanks again!" popup after receiving attacks
+    public GameObject thanksPopup;
 
     private bool isBound = true;
-    private bool canInteract = false;
     private bool hasBeenRescued = false;
+    private bool isPlayerNearby = false;
     private Transform player;
     private Camera mainCamera;
 
     void Start()
     {
-        player = GameObject.FindGameObjectWithTag("Player")?.transform;
+        // Find player exactly like shopkeeper
+        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+        if (playerObj != null)
+        {
+            player = playerObj.transform;
+            playerMovement = playerObj.GetComponent<PlayerMovement>();
+        }
+
         mainCamera = Camera.main;
 
         if (WeaponSmith != null)
@@ -48,8 +52,9 @@ public class WeaponSmithHostage : MonoBehaviour
             WeaponSmith.SetBool("IsBound", true);
         }
 
+        // Hide UI initially - EXACTLY like shopkeeper
+        if (interactPrompt != null) interactPrompt.SetActive(false);
         if (weaponPopupCanvas != null) weaponPopupCanvas.SetActive(false);
-        if (topPopup != null) topPopup.SetActive(false);
         if (thanksPopup != null) thanksPopup.SetActive(false);
 
         if (nextButton != null)
@@ -60,76 +65,58 @@ public class WeaponSmithHostage : MonoBehaviour
 
     void Update()
     {
+        if (player == null) return;
+
+        // SIMPLE distance check like shopkeeper
+        float distance = Vector2.Distance(transform.position, player.position);
+        isPlayerNearby = distance <= interactionRange;
+
         if (isBound)
         {
-            CheckPlayerDistance();
+            // Show interact prompt EXACTLY like shopkeeper
+            if (interactPrompt != null)
+            {
+                interactPrompt.SetActive(isPlayerNearby);
+            }
 
-            if (canInteract && Input.GetKeyDown(interactKey))
+            // Interaction EXACTLY like shopkeeper
+            if (isPlayerNearby && Input.GetKeyDown(interactKey))
             {
                 FreeWeaponSmith();
             }
         }
         else if (hasBeenRescued)
         {
-            // After rescue, check distance for thanks popup
-            CheckThanksPopupDistance();
+            // Thanks popup like shopkeeper's simple logic
+            if (thanksPopup != null)
+            {
+                thanksPopup.SetActive(isPlayerNearby);
+            }
         }
 
-        // Update the popup positions to follow the weaponsmith
-        UpdatePopupPositions();
+        // Update positions
+        UpdateUIPositions();
     }
 
-    void CheckPlayerDistance()
-    {
-        if (player == null) return;
-
-        float distance = Vector2.Distance(transform.position, player.position);
-        bool wasInteractable = canInteract;
-        canInteract = distance <= interactionRange;
-
-        // Show/hide top popup based on interaction range
-        if (topPopup != null && isBound) // Only show if still bound
-        {
-            topPopup.SetActive(canInteract);
-        }
-
-        // If player moved out of range, hide top popup
-        if (wasInteractable && !canInteract && topPopup != null)
-        {
-            topPopup.SetActive(false);
-        }
-    }
-
-    void CheckThanksPopupDistance()
-    {
-        if (player == null || thanksPopup == null) return;
-
-        float distance = Vector2.Distance(transform.position, player.position);
-        bool inRange = distance <= interactionRange;
-
-        // Show/hide thanks popup based on interaction range
-        thanksPopup.SetActive(inRange);
-    }
-
-    void UpdatePopupPositions()
+    void UpdateUIPositions()
     {
         if (mainCamera == null) return;
 
-        // Update top popup position (for bound state)
-        if (topPopup != null && topPopup.activeInHierarchy)
+        // Update interact prompt position
+        if (interactPrompt != null && interactPrompt.activeInHierarchy)
         {
             Vector3 worldPosition = transform.position + Vector3.up * 1.5f;
             Vector3 screenPosition = mainCamera.WorldToScreenPoint(worldPosition);
-            screenPosition.y += popupHeightOffset;
-            topPopup.transform.position = screenPosition;
+            screenPosition.y += 50f;
+            interactPrompt.transform.position = screenPosition;
         }
 
-        // Update thanks popup position (for rescued state)
+        // Update thanks popup position
         if (thanksPopup != null && thanksPopup.activeInHierarchy)
         {
             Vector3 worldPosition = transform.position + Vector3.up * 1.5f;
             Vector3 screenPosition = mainCamera.WorldToScreenPoint(worldPosition);
-            screenPosition.y += popupHeightOffset;
+            screenPosition.y += 50f;
             thanksPopup.transform.position = screenPosition;
         }
     }
@@ -139,17 +126,17 @@ public class WeaponSmithHostage : MonoBehaviour
         if (!isBound) return;
 
         isBound = false;
-        canInteract = false;
 
         if (WeaponSmith != null)
         {
             WeaponSmith.SetBool("IsBound", false);
         }
 
-        // Hide the top popup when rescued
-        if (topPopup != null) topPopup.SetActive(false);
-
-        Debug.Log("Weapon Smith rescued!");
+        // Hide interact prompt like shopkeeper hides when opening shop
+        if (interactPrompt != null)
+        {
+            interactPrompt.SetActive(false);
+        }
 
         StartCoroutine(ShowWeaponPopupAfterAnimation());
     }
@@ -189,19 +176,16 @@ public class WeaponSmithHostage : MonoBehaviour
         if (givesNormalAttack)
         {
             playerMovement.EnableNormalAttack();
-            Debug.Log("Normal Attack Unlocked!");
         }
 
         if (givesChargedAttack)
         {
             playerMovement.EnableChargedAttack();
-            Debug.Log("Charged Attack Unlocked!");
         }
 
         if (givesRangedAttack)
         {
             playerMovement.EnableRangedAttack();
-            Debug.Log("Ranged Attack Unlocked!");
         }
     }
 }
