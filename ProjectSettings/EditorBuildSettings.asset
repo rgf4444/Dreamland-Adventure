@@ -8,4 +8,16 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/SampleScene.unity
     guid: 2cda990e2423bbf4892e6590ba056729
+  - enabled: 1
+    path: Assets/Scenes/SampleScene 1.unity
+    guid: 9482f75675fa00c41bf9e85e393e118f
+  - enabled: 1
+    path: Assets/Scenes/GameComplete.unity
+    guid: 67435de34c2cf83408ac0efd3bda2e2c
+  - enabled: 1
+    path: Assets/Scenes/LevelSelect.unity
+    guid: 488c5c23084d24548a11f7fb772ece86
+  - enabled: 1
+    path: Assets/Scenes/bossfight_test.unity
+    guid: 1ed2619c091019b46af9bf68f836858f
   m_configObjects: {}
