@@ -3,6 +3,7 @@ using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
+    private SpriteRenderer spriteRenderer;
     [Header("Movement")]
     public float walkSpeed = 5f;
     public float runSpeed = 8f;
@@ -10,6 +11,16 @@ public class PlayerMovement : MonoBehaviour
     private bool isFacingRight = true;
     private bool isGrounded;
     private bool canMove = true;
+
+    [Header("Animation")]
+    private Animator animator;
+
+    // Animator Parameters
+    private const string IS_MOVING = "isMoving";
+    private const string IS_JUMPING = "isJumping";
+    private const string IS_ATTACKING = "isAttacking";
+    private const string IS_CHARGING = "isCharging";
+    private const string ATTACK_TYPE = "attackType";
 
     [Header("Attack Unlock Status")]
     public bool normalAttackEnabled = false;
@@ -51,10 +62,23 @@ public class PlayerMovement : MonoBehaviour
     private Coroutine chargedAttackCoroutine;
     private bool isCharging = false;
 
+    private void Start()
+    {
+        animator = GetComponent<Animator>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
+
+        // Initialize animator parameters
+        SetAnimatorBool(IS_MOVING, false);
+        SetAnimatorBool(IS_JUMPING, false);
+        SetAnimatorBool(IS_ATTACKING, false);
+        SetAnimatorBool(IS_CHARGING, false);
+    }
+
     private void Update()
     {
         HandleInput();
         HandleAttack();
+        UpdateAnimation();
     }
 
     private void FixedUpdate()
@@ -67,10 +91,8 @@ public class PlayerMovement : MonoBehaviour
         }
         else if (!isKnockedBack)
         {
-            // Stop horizontal drift if movement is locked (e.g. during attacks)
             rb.velocity = new Vector2(0, rb.velocity.y);
         }
-        // Do NOT interfere with rb.velocity when knocked back — physics handles that
     }
 
     private void HandleInput()
@@ -91,42 +113,46 @@ public class PlayerMovement : MonoBehaviour
         float currentSpeed = isRunning ? runSpeed : walkSpeed;
         rb.velocity = new Vector2(moveInput * currentSpeed, rb.velocity.y);
 
-        if (isFacingRight && moveInput < 0)
+        if (moveInput > 0 && !isFacingRight)
             Flip();
-        else if (!isFacingRight && moveInput > 0)
+        else if (moveInput < 0 && isFacingRight)
             Flip();
+    }
+
+    private void UpdateAnimation()
+    {
+        if (isAttacking || isKnockedBack) return;
+
+        SetAnimatorBool(IS_MOVING, Mathf.Abs(moveInput) > 0.1f);
+        SetAnimatorBool(IS_JUMPING, !isGrounded);
     }
 
     private void Jump()
     {
         rb.velocity = new Vector2(rb.velocity.x, jumpForce);
+        SetAnimatorBool(IS_JUMPING, true);
     }
 
     private void Flip()
     {
         isFacingRight = !isFacingRight;
-        Vector3 scaler = transform.localScale;
-        scaler.x *= -1;
-        transform.localScale = scaler;
+        spriteRenderer.flipX = !spriteRenderer.flipX;
     }
 
     private void HandleAttack()
     {
         if (isAttacking || isKnockedBack) return;
 
-        // Normal attack (Key 1) - only if enabled
         if (normalAttackEnabled && Input.GetKeyDown(KeyCode.Alpha1) && Time.time >= nextNormalAttackTime)
         {
             StartCoroutine(NormalAttack());
         }
 
-        // Charged attack (Key 2) - only if enabled
         if (chargedAttackEnabled && Input.GetKeyDown(KeyCode.Alpha2) && isGrounded && Time.time >= nextChargedAttackTime)
         {
             chargedAttackCoroutine = StartCoroutine(ChargedAttack());
         }
 
-        // Ranged attack (Key 3) - only if enabled
         if (rangedAttackEnabled && Input.GetKeyDown(KeyCode.Alpha3) && Time.time >= nextRangedAttackTime)
         {
             StartCoroutine(RangedAttack());
@@ -137,7 +163,13 @@ public class PlayerMovement : MonoBehaviour
     {
         isAttacking = true;
         canMove = false;
+
+        // Set attack parameters
+        SetAnimatorBool(IS_ATTACKING, true);
+        SetAnimatorInt(ATTACK_TYPE, 1);
         Debug.Log("Normal Attack!");
+
+        yield return new WaitForSeconds(0.1f);
 
         Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(attackPoint.position, attackRange, enemyLayers);
         foreach (Collider2D enemy in hitEnemies)
@@ -146,10 +178,11 @@ public class PlayerMovement : MonoBehaviour
             enemy.GetComponent<BossHealth>()?.TakeDamage(normalAttackDamage);
         }
 
-        yield return new WaitForSeconds(0.25f);
-        canMove = true;
-        yield return new WaitForSeconds(0.25f);
+        yield return new WaitForSeconds(0.4f);
 
+        // End attack (animator will auto-transition back to idle)
+        SetAnimatorBool(IS_ATTACKING, false);
+        canMove = true;
         nextNormalAttackTime = Time.time + normalAttackCooldown;
         isAttacking = false;
     }
@@ -159,12 +192,14 @@ public class PlayerMovement : MonoBehaviour
         isAttacking = true;
         canMove = false;
         isCharging = true;
+
+        // Start charging animation
+        SetAnimatorBool(IS_CHARGING, true);
         Debug.Log("Charging...");
 
         float elapsed = 0f;
         while (elapsed < chargedAttackDuration)
         {
-            // If interrupted mid-charge, stop immediately
             if (!isCharging)
                 yield break;
 
@@ -172,7 +207,13 @@ public class PlayerMovement : MonoBehaviour
             yield return null;
         }
 
+        // End charging, start attack
+        SetAnimatorBool(IS_CHARGING, false);
+        SetAnimatorBool(IS_ATTACKING, true);
+        SetAnimatorInt(ATTACK_TYPE, 2);
         Debug.Log("Strong Attack Released!");
+
+        yield return new WaitForSeconds(0.1f);
 
         Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(attackPoint.position, attackRange, enemyLayers);
         foreach (Collider2D enemy in hitEnemies)
@@ -185,29 +226,32 @@ public class PlayerMovement : MonoBehaviour
                 EnemyStunHandler stunHandler = enemy.GetComponent<EnemyStunHandler>();
                 if (stunHandler != null)
                 {
-                    stunHandler.ApplyStun(2f); // 2 seconds stun duration
-                }
-                else
-                {
-                    Debug.Log($"{enemy.name} has no EnemyStunHandler attached!");
+                    stunHandler.ApplyStun(2f);
                 }
             }
         }
 
-
         yield return new WaitForSeconds(postChargeMovementDelay);
-        canMove = true;
 
+        // End attack
+        SetAnimatorBool(IS_ATTACKING, false);
+        canMove = true;
         nextChargedAttackTime = Time.time + chargedAttackCooldown;
         isAttacking = false;
+        isCharging = false;
     }
-
 
     private IEnumerator RangedAttack()
     {
         isAttacking = true;
         canMove = false;
+
+        // Set ranged attack parameters
+        SetAnimatorBool(IS_ATTACKING, true);
+        SetAnimatorInt(ATTACK_TYPE, 3);
         Debug.Log("Ranged Attack!");
+
+        yield return new WaitForSeconds(0.2f);
 
         if (projectilePrefab != null && firePoint != null)
         {
@@ -217,7 +261,6 @@ public class PlayerMovement : MonoBehaviour
             Vector2 dir = isFacingRight ? Vector2.right : Vector2.left;
             projectile.Initialize(dir);
 
-            // Flip projectile if facing left
             if (!isFacingRight)
             {
                 Vector3 scale = bullet.transform.localScale;
@@ -226,10 +269,26 @@ public class PlayerMovement : MonoBehaviour
             }
         }
 
-        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSeconds(0.3f);
+
+        // End attack
+        SetAnimatorBool(IS_ATTACKING, false);
         nextRangedAttackTime = Time.time + rangedAttackCooldown;
         canMove = true;
         isAttacking = false;
+    }
+
+    // Animation Helper Methods
+    private void SetAnimatorBool(string parameter, bool value)
+    {
+        if (animator != null)
+            animator.SetBool(parameter, value);
+    }
+
+    private void SetAnimatorInt(string parameter, int value)
+    {
+        if (animator != null)
+            animator.SetInteger(parameter, value);
     }
 
     public void CancelChargedAttack()
@@ -237,17 +296,16 @@ public class PlayerMovement : MonoBehaviour
         if (isCharging && chargedAttackCoroutine != null)
         {
             Debug.Log("Charged attack interrupted!");
-
-            // Stop the active coroutine
             StopCoroutine(chargedAttackCoroutine);
             chargedAttackCoroutine = null;
 
-            // Reset states
+            // Reset animation states
+            SetAnimatorBool(IS_CHARGING, false);
+            SetAnimatorBool(IS_ATTACKING, false);
+
             isCharging = false;
             isAttacking = false;
             canMove = true;
-
-            // Force cooldown to prevent instant retry
             nextChargedAttackTime = Time.time + chargedAttackCooldown;
         }
     }
@@ -259,7 +317,6 @@ public class PlayerMovement : MonoBehaviour
 
     public void ApplyKnockbackRecovery(float duration)
     {
-        // Prevent overlapping knockback coroutines
         StopCoroutine(nameof(KnockbackRecovery));
         StartCoroutine(KnockbackRecovery(duration));
     }
@@ -288,36 +345,10 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    public void EnableNormalAttack()
-    {
-        normalAttackEnabled = true;
-        Debug.Log("Normal Attack Enabled!");
-    }
-
-    public void EnableChargedAttack()
-    {
-        chargedAttackEnabled = true;
-        Debug.Log("Charged Attack Enabled!");
-    }
-
-    public void EnableRangedAttack()
-    {
-        rangedAttackEnabled = true;
-        Debug.Log("Ranged Attack Enabled!");
-    }
-
-    public void DisableNormalAttack()
-    {
-        normalAttackEnabled = false;
-    }
-
-    public void DisableChargedAttack()
-    {
-        chargedAttackEnabled = false;
-    }
-
-    public void DisableRangedAttack()
-    {
-        rangedAttackEnabled = false;
-    }
+    public void EnableNormalAttack() { normalAttackEnabled = true; Debug.Log("Normal Attack Enabled!"); }
+    public void EnableChargedAttack() { chargedAttackEnabled = true; Debug.Log("Charged Attack Enabled!"); }
+    public void EnableRangedAttack() { rangedAttackEnabled = true; Debug.Log("Ranged Attack Enabled!"); }
+    public void DisableNormalAttack() { normalAttackEnabled = false; }
+    public void DisableChargedAttack() { chargedAttackEnabled = false; }
+    public void DisableRangedAttack() { rangedAttackEnabled = false; }
 }
