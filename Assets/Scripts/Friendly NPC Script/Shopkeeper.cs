@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
+using TMPro;
 
 public class Shopkeeper : MonoBehaviour
 {
@@ -180,7 +181,7 @@ public class Shopkeeper : MonoBehaviour
     {
         if (thankYouMessage != null)
         {
-            Text textComponent = thankYouMessage.GetComponent<Text>();
+            TextMeshProUGUI textComponent = thankYouMessage.GetComponent<TextMeshProUGUI>();
             if (textComponent != null)
             {
                 textComponent.text = thankYouText;
@@ -225,7 +226,6 @@ public class Shopkeeper : MonoBehaviour
         {
             string upgradedAttacks = "";
 
-            // Upgrade only the attacks that are checked in the Inspector
             if (upgradeNormalAttack)
             {
                 playerMovement.normalAttackDamage += normalAttackDamageIncrease;
@@ -240,9 +240,6 @@ public class Shopkeeper : MonoBehaviour
 
             if (upgradeRangedAttack && playerMovement.rangedAttackEnabled)
             {
-                // Note: You'll need to add a public rangedAttackDamage variable to PlayerMovement
-                // playerMovement.rangedAttackDamage += rangedAttackDamageIncrease;
-                // upgradedAttacks += $"Ranged: +{rangedAttackDamageIncrease} = {playerMovement.rangedAttackDamage}, ";
                 upgradedAttacks += "Ranged Attack (needs implementation), ";
             }
 
@@ -262,7 +259,7 @@ public class Shopkeeper : MonoBehaviour
             bool canBuyHealth = !healthPotionPurchased && !IsHealthFull();
             healthPotionButton.interactable = canBuyHealth;
 
-            Text buttonText = healthPotionButton.GetComponentInChildren<Text>();
+            TextMeshProUGUI buttonText = healthPotionButton.GetComponentInChildren<TextMeshProUGUI>();
             if (buttonText != null)
             {
                 if (healthPotionPurchased)
@@ -291,7 +288,7 @@ public class Shopkeeper : MonoBehaviour
     {
         if (damageUpgradeButton != null)
         {
-            Text buttonText = damageUpgradeButton.GetComponentInChildren<Text>();
+            TextMeshProUGUI buttonText = damageUpgradeButton.GetComponentInChildren<TextMeshProUGUI>();
             if (buttonText != null)
             {
                 if (damageUpgradePurchased)
@@ -300,7 +297,6 @@ public class Shopkeeper : MonoBehaviour
                 }
                 else
                 {
-                    // Show which attacks will be upgraded based on inspector settings
                     string upgradeInfo = "Damage Upgrade: ";
 
                     if (upgradeNormalAttack) upgradeInfo += $"Normal +{normalAttackDamageIncrease} ";

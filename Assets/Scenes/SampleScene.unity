@@ -2268,8 +2268,8 @@ MonoBehaviour:
   pointB: {fileID: 834568539}
   moveSpeed: 1
   idleDuration: 3
-  detectionRange: 15
-  attackRange: 15
+  detectionRange: 6.7
+  attackRange: 6.1
   attackCooldown: 4
   projectileSpeed: 6
   attackDuration: 1
@@ -2382,7 +2382,7 @@ SpriteRenderer:
   m_SortingOrder: 2
   m_Sprite: {fileID: 621419618, guid: e7c44cd3213859548bac7310a83ba2b1, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_FlipX: 0
+  m_FlipX: 1
   m_FlipY: 0
   m_DrawMode: 0
   m_Size: {x: 1, y: 1}
@@ -2891,7 +2891,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1386931165
 MonoBehaviour:
   m_ObjectHideFlags: 0

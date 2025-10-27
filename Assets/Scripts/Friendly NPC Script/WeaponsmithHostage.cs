@@ -15,7 +15,7 @@ public class WeaponsmithHostage : MonoBehaviour
     [Header("Interaction Settings")]
     public KeyCode interactKey = KeyCode.E;
     public float interactionRange = 2f;
-    public GameObject interactPrompt; // Use the same type as shopkeeper
+    public GameObject interactPrompt; 
 
     [Header("Player Reference")]
     public PlayerMovement playerMovement;
@@ -107,7 +107,7 @@ public class WeaponsmithHostage : MonoBehaviour
         {
             Vector3 worldPosition = transform.position + Vector3.up * 1.5f;
             Vector3 screenPosition = mainCamera.WorldToScreenPoint(worldPosition);
-            screenPosition.y += 50f;
+            screenPosition.y += 5f;
             interactPrompt.transform.position = screenPosition;
         }
 
@@ -116,7 +116,7 @@ public class WeaponsmithHostage : MonoBehaviour
         {
             Vector3 worldPosition = transform.position + Vector3.up * 1.5f;
             Vector3 screenPosition = mainCamera.WorldToScreenPoint(worldPosition);
-            screenPosition.y += 50f;
+            screenPosition.y += 5f;
             thanksPopup.transform.position = screenPosition;
         }
     }
