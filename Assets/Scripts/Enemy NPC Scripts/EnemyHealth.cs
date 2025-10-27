@@ -6,12 +6,14 @@ public class EnemyHealth : MonoBehaviour
     private int currentHealth;
 
     private bool isDead = false;
-    private ClubAI clubAI; 
+    private ClubAI clubAI;
+    private SpadeAI spadeAI;
 
     private void Start()
     {
         currentHealth = maxHealth;
         clubAI = GetComponent<ClubAI>();
+        spadeAI = GetComponent<SpadeAI>();
     }
 
     public void TakeDamage(int amount)
@@ -32,20 +34,24 @@ public class EnemyHealth : MonoBehaviour
         isDead = true;
         Debug.Log($"{gameObject.name} defeated! Transforming to friendly...");
 
-        // Instead of destroying, transform to friendly
+        // Try to transform to friendly for both enemy types
         if (clubAI != null)
         {
             clubAI.TransformToFriendly();
         }
-        else
+
+        if (spadeAI != null)
         {
-            Debug.LogWarning("ClubAI component not found! Destroying instead.");
+            spadeAI.TransformToFriendly();
+        }
+
+        // If neither AI component was found, destroy the object
+        if (clubAI == null && spadeAI == null)
+        {
+            Debug.LogWarning("No AI component found! Destroying instead.");
             Destroy(gameObject);
         }
 
-
         enabled = false;
-
-     
     }
 }

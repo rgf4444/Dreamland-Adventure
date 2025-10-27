@@ -2244,6 +2244,7 @@ GameObject:
   - component: {fileID: 1095098665}
   - component: {fileID: 1095098670}
   - component: {fileID: 1095098671}
+  - component: {fileID: 1095098672}
   m_Layer: 7
   m_Name: Spade
   m_TagString: Enemy
@@ -2271,6 +2272,7 @@ MonoBehaviour:
   attackRange: 15
   attackCooldown: 4
   projectileSpeed: 6
+  attackDuration: 1
   player: {fileID: 1274684340}
   projectilePrefab: {fileID: 4071682272459395299, guid: 14f05d406d4932e4e9c08558608e971d, type: 3}
   firePoint: {fileID: 1053818050}
@@ -2378,8 +2380,8 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 2
-  m_Sprite: {fileID: -2413806693520163455, guid: ebe73ca9363db456bacf42c025bb4847, type: 3}
-  m_Color: {r: 0.42653078, g: 0.51515913, b: 0.6698113, a: 1}
+  m_Sprite: {fileID: 621419618, guid: e7c44cd3213859548bac7310a83ba2b1, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -2398,8 +2400,8 @@ Transform:
   m_GameObject: {fileID: 1095098664}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -5.12, y: -2.492, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: -5.12, y: -1.44, z: 0}
+  m_LocalScale: {x: 2.780022, y: 2.780022, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 665793314}
@@ -2432,6 +2434,27 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 10
+--- !u!95 &1095098672
+Animator:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1095098664}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: be4558d8be4e38648a721fdf17c3c3cd, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &1221792769
 GameObject:
   m_ObjectHideFlags: 0
