@@ -8,8 +8,8 @@ public class SpadeProjectile : MonoBehaviour
     public int damage = 1;
 
     [Header("Knockback Settings")]
-    public float knockbackForce = 8f; // tweak for feel
-    public float knockbackUpwardForce = 2f; // optional: slight upward push
+    public float knockbackForce = 8f;
+    public float knockbackUpwardForce = 2f;
 
     private Transform target;
     private PlayerHealth playerHealth;
@@ -40,21 +40,18 @@ public class SpadeProjectile : MonoBehaviour
 
             if (playerRb != null)
             {
-                // Knockback direction (horizontal only with optional slight upward force)
                 Vector2 knockDir = (collision.transform.position - transform.position).normalized;
                 knockDir = new Vector2(Mathf.Sign(knockDir.x), 0.3f).normalized;
 
-                // Clear vertical velocity to avoid jump interference
                 playerRb.velocity = new Vector2(0f, 0f);
-
-                // Apply impulse force for strong, momentary push
                 playerRb.AddForce(knockDir * knockbackForce, ForceMode2D.Impulse);
             }
 
             if (playerMovement != null)
+            {
                 playerMovement.ApplyKnockbackRecovery(0.3f);
-
-            playerMovement.CancelChargedAttack();
+                playerMovement.CancelChargedAttack();
+            }
 
             Destroy(gameObject);
         }

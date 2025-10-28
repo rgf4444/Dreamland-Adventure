@@ -15,6 +15,9 @@ public class ClubAI : MonoBehaviour
     public float attackCooldown = 4f;
     public float damageDelay = 0.2f; // Delay damage to match animation
 
+    [Header("Hit Settings")]
+    public float hitStunDuration = 0.5f;
+
     [Header("References")]
     public Transform player;
     public PlayerHealth playerHealth;
@@ -26,15 +29,18 @@ public class ClubAI : MonoBehaviour
     private const string IS_MOVING = "isMoving";
     private const string IS_ATTACKING = "isAttacking";
     private const string IS_FRIENDLY = "isFriendly";
+    private const string IS_HIT = "isHit"; // New hit boolean
 
     private Vector3 targetPoint;
     private bool isIdling = false;
     private bool isDefeated = false;
+    private bool isHit = false; // New hit state
     private float idleTimer;
     private bool hasDetectedPlayer = false;
     private bool facingRight = true;
     private float attackTimer = 0f;
     private Coroutine attackCoroutine;
+    private Coroutine hitCoroutine;
 
     void Start()
     {
@@ -44,6 +50,7 @@ public class ClubAI : MonoBehaviour
         SetAnimatorBool(IS_FRIENDLY, false);
         SetAnimatorBool(IS_MOVING, false);
         SetAnimatorBool(IS_ATTACKING, false);
+        SetAnimatorBool(IS_HIT, false); // Initialize hit state
     }
 
     void Update()
@@ -52,6 +59,9 @@ public class ClubAI : MonoBehaviour
 
         if (attackTimer > 0)
             attackTimer -= Time.deltaTime;
+
+        // Don't do anything if currently hit
+        if (isHit) return;
 
         float distanceToPlayer = Vector2.Distance(transform.position, player.position);
 
@@ -153,6 +163,45 @@ public class ClubAI : MonoBehaviour
         SetAnimatorBool(IS_ATTACKING, false);
     }
 
+    // --- HIT ANIMATION METHOD ---
+    public void TriggerHitAnimation()
+    {
+        if (isDefeated || isHit) return;
+
+        // Stop any current hit coroutine
+        if (hitCoroutine != null)
+            StopCoroutine(hitCoroutine);
+
+        // Start hit coroutine
+        hitCoroutine = StartCoroutine(PerformHit());
+    }
+
+    private IEnumerator PerformHit()
+    {
+        isHit = true;
+        SetAnimatorBool(IS_HIT, true); // Set hit boolean to true
+
+        // Stop movement and attack
+        SetAnimatorBool(IS_MOVING, false);
+
+        // Stop any ongoing attack
+        if (attackCoroutine != null)
+        {
+            StopCoroutine(attackCoroutine);
+            SetAnimatorBool(IS_ATTACKING, false);
+        }
+
+        Debug.Log($"{gameObject.name} took hit!");
+
+        // Wait for hit stun duration
+        yield return new WaitForSeconds(hitStunDuration);
+
+        // Reset hit state
+        SetAnimatorBool(IS_HIT, false); // Set hit boolean to false
+        isHit = false;
+        hitCoroutine = null;
+    }
+
     private void SetAnimatorBool(string parameter, bool value)
     {
         if (animator != null)
@@ -162,15 +211,21 @@ public class ClubAI : MonoBehaviour
     public void TransformToFriendly()
     {
         isDefeated = true;
+        isHit = false; // Ensure hit state is cleared
         hasDetectedPlayer = false;
 
-        // Stop any attack
+        // Stop any coroutines
         if (attackCoroutine != null)
         {
             StopCoroutine(attackCoroutine);
             SetAnimatorBool(IS_ATTACKING, false);
         }
 
+        if (hitCoroutine != null)
+            StopCoroutine(hitCoroutine);
+
+        // Reset all animation states
+        SetAnimatorBool(IS_HIT, false);
         SetAnimatorBool(IS_FRIENDLY, true);
         SetAnimatorBool(IS_MOVING, false);
     }

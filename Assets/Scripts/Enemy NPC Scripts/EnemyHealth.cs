@@ -23,6 +23,17 @@ public class EnemyHealth : MonoBehaviour
         currentHealth -= amount;
         Debug.Log($"{gameObject.name} took {amount} damage! Remaining HP: {currentHealth}");
 
+        // Trigger hit animation when taking damage for both enemy types
+        if (spadeAI != null)
+        {
+            spadeAI.TriggerHitAnimation();
+        }
+
+        if (clubAI != null)
+        {
+            clubAI.TriggerHitAnimation();
+        }
+
         if (currentHealth <= 0)
         {
             Die();

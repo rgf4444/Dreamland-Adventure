@@ -2273,6 +2273,7 @@ MonoBehaviour:
   attackCooldown: 4
   projectileSpeed: 6
   attackDuration: 1
+  hitStunDuration: 0.5
   player: {fileID: 1274684340}
   projectilePrefab: {fileID: 4071682272459395299, guid: 14f05d406d4932e4e9c08558608e971d, type: 3}
   firePoint: {fileID: 1053818050}
@@ -2912,6 +2913,7 @@ MonoBehaviour:
   attackRange: 1.5
   attackCooldown: 3
   damageDelay: 0.4
+  hitStunDuration: 0.2
   player: {fileID: 1274684340}
   playerHealth: {fileID: 1221792774}
 --- !u!50 &1386931166
@@ -3016,7 +3018,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 2
+  m_SortingOrder: 3
   m_Sprite: {fileID: -1324881567, guid: 33cacc1ed37068e42a5fb07ba529340d, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 1

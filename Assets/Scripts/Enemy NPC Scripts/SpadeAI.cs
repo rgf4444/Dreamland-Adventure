@@ -16,6 +16,9 @@ public class SpadeAI : MonoBehaviour
     public float projectileSpeed = 6f;
     public float attackDuration = 1f;
 
+    [Header("Hit Settings")]
+    public float hitStunDuration = 0.5f;
+
     [Header("References")]
     public Transform player;
     public GameObject projectilePrefab;
@@ -29,15 +32,19 @@ public class SpadeAI : MonoBehaviour
     private const string IS_MOVING = "isMoving";
     private const string IS_ATTACKING = "isAttacking";
     private const string IS_FRIENDLY = "isFriendly";
+    private const string IS_HIT = "isHit";
 
     private Vector3 targetPoint;
     private bool isIdling = false;
     private bool isDefeated = false;
-    private float idleTimer;
+    private bool isHit = false;
     private bool hasDetectedPlayer = false;
     private bool facingRight = true;
+    private float idleTimer;
     private float attackTimer = 0f;
+    private float hitTimer = 0f;
     private Coroutine attackCoroutine;
+    private Coroutine hitCoroutine;
 
     void Start()
     {
@@ -48,17 +55,25 @@ public class SpadeAI : MonoBehaviour
         SetAnimatorBool(IS_FRIENDLY, false);
         SetAnimatorBool(IS_MOVING, false);
         SetAnimatorBool(IS_ATTACKING, false);
+        SetAnimatorBool(IS_HIT, false);
     }
 
     void Update()
     {
         if (isDefeated) return;
 
+        // Update timers
         if (attackTimer > 0)
             attackTimer -= Time.deltaTime;
 
+        if (hitTimer > 0)
+            hitTimer -= Time.deltaTime;
+
         if (player == null)
             return;
+
+        // Don't do anything if currently hit
+        if (isHit) return;
 
         float distanceToPlayer = Vector2.Distance(transform.position, player.position);
 
@@ -76,10 +91,26 @@ public class SpadeAI : MonoBehaviour
             }
         }
 
+        // Update facing direction every frame when player is detected
+        UpdateFacingDirection();
+
         if (distanceToPlayer <= attackRange)
             AttackPlayer();
         else
             ChasePlayer();
+    }
+
+    // --- UPDATED: Separate facing direction logic ---
+    void UpdateFacingDirection()
+    {
+        if (player == null) return;
+
+        bool shouldFaceRight = player.position.x > transform.position.x;
+
+        if (shouldFaceRight && !facingRight)
+            Flip();
+        else if (!shouldFaceRight && facingRight)
+            Flip();
     }
 
     // --- PATROL LOGIC ---
@@ -121,11 +152,6 @@ public class SpadeAI : MonoBehaviour
         transform.position = Vector2.MoveTowards(transform.position, target, moveSpeed * Time.deltaTime);
 
         SetAnimatorBool(IS_MOVING, true);
-
-        if (player.position.x > transform.position.x && !facingRight)
-            Flip();
-        else if (player.position.x < transform.position.x && facingRight)
-            Flip();
     }
 
     // --- ATTACK LOGIC (RANGED) ---
@@ -152,19 +178,19 @@ public class SpadeAI : MonoBehaviour
         // Wait a bit for attack animation to sync
         yield return new WaitForSeconds(0.3f);
 
-        // Fire projectile
+        // Fire projectile - direction calculated at firing moment
         if (projectilePrefab != null && firePoint != null && player != null)
         {
             GameObject bullet = Instantiate(projectilePrefab, firePoint.position, Quaternion.identity);
 
-            // Initialize projectile with your existing method
+            // Initialize projectile with your original method (follows player)
             SpadeProjectile spadeProjectile = bullet.GetComponent<SpadeProjectile>();
             if (spadeProjectile != null)
             {
                 spadeProjectile.Initialize(player, playerHealth);
             }
 
-            // Flip projectile based on facing direction
+            // Flip projectile sprite based on current facing direction
             if (!facingRight)
             {
                 Vector3 scale = bullet.transform.localScale;
@@ -180,6 +206,45 @@ public class SpadeAI : MonoBehaviour
         SetAnimatorBool(IS_ATTACKING, false);
     }
 
+    // --- HIT ANIMATION METHOD ---
+    public void TriggerHitAnimation()
+    {
+        if (isDefeated || isHit) return;
+
+        // Stop any current hit coroutine
+        if (hitCoroutine != null)
+            StopCoroutine(hitCoroutine);
+
+        // Start hit coroutine
+        hitCoroutine = StartCoroutine(PerformHit());
+    }
+
+    private IEnumerator PerformHit()
+    {
+        isHit = true;
+        SetAnimatorBool(IS_HIT, true);
+
+        // Stop movement and attack
+        SetAnimatorBool(IS_MOVING, false);
+
+        // Stop any ongoing attack
+        if (attackCoroutine != null)
+        {
+            StopCoroutine(attackCoroutine);
+            SetAnimatorBool(IS_ATTACKING, false);
+        }
+
+        Debug.Log($"{gameObject.name} took hit!");
+
+        // Wait for hit stun duration
+        yield return new WaitForSeconds(hitStunDuration);
+
+        // Reset hit state
+        SetAnimatorBool(IS_HIT, false);
+        isHit = false;
+        hitCoroutine = null;
+    }
+
     // --- ANIMATION METHODS ---
     private void SetAnimatorBool(string parameter, bool value)
     {
@@ -191,15 +256,20 @@ public class SpadeAI : MonoBehaviour
     public void TransformToFriendly()
     {
         isDefeated = true;
+        isHit = false;
         hasDetectedPlayer = false;
 
-        // Stop any attack
+        // Stop any coroutines
         if (attackCoroutine != null)
         {
             StopCoroutine(attackCoroutine);
             SetAnimatorBool(IS_ATTACKING, false);
         }
 
+        if (hitCoroutine != null)
+            StopCoroutine(hitCoroutine);
+
+        SetAnimatorBool(IS_HIT, false);
         SetAnimatorBool(IS_FRIENDLY, true);
         SetAnimatorBool(IS_MOVING, false);
         Debug.Log($"{gameObject.name} transformed to friendly!");
