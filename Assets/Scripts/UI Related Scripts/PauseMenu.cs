@@ -23,8 +23,10 @@ public class MenuActions : MonoBehaviour
 
     public void GoToLevelSelect()
     {
-        Debug.Log("Going to Level Select...");
-        SceneManager.LoadScene(levelSelectScene);
+     
+
+        // Load level select
+        SceneManager.LoadScene("LevelSelect");
     }
 
     public void ExitGame()

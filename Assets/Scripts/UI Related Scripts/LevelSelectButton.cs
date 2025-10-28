@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using TMPro;
@@ -15,28 +15,55 @@ public class LevelSelectButtonTMP : MonoBehaviour
 
     [Header("Colors")]
     public Color unlockedColor = Color.white;
-    public Color lockedColor = Color.red;
+    public Color lockedColor = Color.gray;
+    public Color completedColor = Color.green; // Optional: color for completed levels
 
     void Start()
     {
-        // Unlock Level 1 by default if not already
-        if (levelNumber == 1 && PlayerPrefs.GetInt("Level1_Unlocked", 0) == 0)
-        {
-            PlayerPrefs.SetInt("Level1_Unlocked", 1);
-        }
+        UpdateButtonState();
+    }
 
+    void UpdateButtonState()
+    {
         bool isUnlocked = PlayerPrefs.GetInt("Level" + levelNumber + "_Unlocked", 0) == 1;
+        bool isCompleted = PlayerPrefs.GetInt("Level" + levelNumber + "_Completed", 0) == 1;
 
-        // Update button state and TMP text color
+        // Update button interactability
         button.interactable = isUnlocked;
+
+        // Update TMP text
         if (levelText != null)
         {
-            levelText.color = isUnlocked ? unlockedColor : lockedColor;
+            if (isUnlocked)
+            {
+                levelText.text = levelNumber.ToString();
+
+                // Optional: Add checkmark for completed levels
+                if (isCompleted)
+                {
+                    levelText.text += " ✓";
+                    levelText.color = completedColor;
+                }
+                else
+                {
+                    levelText.color = unlockedColor;
+                }
+            }
+            else
+            {
+                levelText.text = "🔒"; // Or just keep as number but grayed out
+                levelText.color = lockedColor;
+            }
         }
     }
 
     public void LoadLevel()
     {
-        SceneManager.LoadScene(sceneName);
+        bool isUnlocked = PlayerPrefs.GetInt("Level" + levelNumber + "_Unlocked", 0) == 1;
+
+        if (isUnlocked && !string.IsNullOrEmpty(sceneName))
+        {
+            SceneManager.LoadScene(sceneName);
+        }
     }
 }

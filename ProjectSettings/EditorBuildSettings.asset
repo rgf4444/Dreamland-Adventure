@@ -15,6 +15,15 @@ EditorBuildSettings:
     path: Assets/Scenes/SampleScene.unity
     guid: 2cda990e2423bbf4892e6590ba056729
   - enabled: 1
+    path: Assets/Scenes/LevelTest1.unity
+    guid: 99ed0e2c59b628746a15f14f47de6f87
+  - enabled: 1
+    path: Assets/Scenes/LevelTest2.unity
+    guid: aa324d5b94d467749a91ebf06233176e
+  - enabled: 1
+    path: Assets/Scenes/LevelTest3.unity
+    guid: e16ee9e6b6ff6594ea87376f349dd2a0
+  - enabled: 1
     path: Assets/Scenes/FriendlyNPC.unity
     guid: 9482f75675fa00c41bf9e85e393e118f
   - enabled: 1
@@ -26,4 +35,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/bossfight_test.unity
     guid: 1ed2619c091019b46af9bf68f836858f
+  - enabled: 1
+    path: Assets/Scenes/GameOver.unity
+    guid: 87caeea2bc682ac41880f3eacfa1b769
   m_configObjects: {}
