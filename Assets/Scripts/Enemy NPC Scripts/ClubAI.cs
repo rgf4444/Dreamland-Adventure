@@ -21,7 +21,8 @@ public class ClubAI : MonoBehaviour
     [Header("References")]
     public Transform player;
     public PlayerHealth playerHealth;
-    private PlayerMovement playerMovement; // NEW: Reference to PlayerMovement
+    private PlayerMovement playerMovement;
+    private EnemyStunHandler stunHandler; // NEW: Reference to stun handler
 
     [Header("Animation")]
     private Animator animator;
@@ -48,11 +49,14 @@ public class ClubAI : MonoBehaviour
         targetPoint = pointA.position;
         animator = GetComponent<Animator>();
 
-        // NEW: Get PlayerMovement reference
+        // Get references
         if (player != null)
         {
             playerMovement = player.GetComponent<PlayerMovement>();
         }
+
+        // NEW: Get stun handler reference
+        stunHandler = GetComponent<EnemyStunHandler>();
 
         SetAnimatorBool(IS_FRIENDLY, false);
         SetAnimatorBool(IS_MOVING, false);
@@ -62,7 +66,16 @@ public class ClubAI : MonoBehaviour
 
     void Update()
     {
-        if (isDefeated) return;
+        // NEW: Check if stunned - don't execute AI logic
+        if (stunHandler != null && stunHandler.IsStunned())
+            return;
+
+        if (isDefeated)
+        {
+            // NEW: Friendly state roaming
+            FriendlyRoam();
+            return;
+        }
 
         if (attackTimer > 0)
             attackTimer -= Time.deltaTime;
@@ -89,6 +102,39 @@ public class ClubAI : MonoBehaviour
             AttackPlayer();
         else
             ChasePlayer();
+    }
+
+    // NEW: Friendly state roaming behavior
+    void FriendlyRoam()
+    {
+        if (!isIdling)
+        {
+            transform.position = Vector2.MoveTowards(transform.position, targetPoint, moveSpeed * Time.deltaTime);
+
+            SetAnimatorBool(IS_MOVING, true);
+
+            // Update facing direction based on movement
+            if (targetPoint.x > transform.position.x && !facingRight)
+                Flip();
+            else if (targetPoint.x < transform.position.x && facingRight)
+                Flip();
+
+            if (Vector2.Distance(transform.position, targetPoint) < 0.2f)
+            {
+                isIdling = true;
+                idleTimer = idleDuration;
+                SetAnimatorBool(IS_MOVING, false);
+            }
+        }
+        else
+        {
+            idleTimer -= Time.deltaTime;
+            if (idleTimer <= 0)
+            {
+                isIdling = false;
+                targetPoint = (targetPoint == pointA.position) ? pointB.position : pointA.position;
+            }
+        }
     }
 
     void Patrol()
@@ -162,7 +208,7 @@ public class ClubAI : MonoBehaviour
         {
             playerHealth.TakeDamage(1);
 
-            // NEW: Trigger player hit animation and interrupt attacks
+            // Trigger player hit animation and interrupt attacks
             if (playerMovement != null)
             {
                 playerMovement.TriggerHitAnimation();
@@ -237,10 +283,15 @@ public class ClubAI : MonoBehaviour
         if (hitCoroutine != null)
             StopCoroutine(hitCoroutine);
 
+        // Reset to starting patrol point for friendly roaming
+        targetPoint = pointA.position;
+        isIdling = false;
+
         // Reset all animation states
         SetAnimatorBool(IS_HIT, false);
         SetAnimatorBool(IS_FRIENDLY, true);
-        SetAnimatorBool(IS_MOVING, false);
+        SetAnimatorBool(IS_MOVING, true); // Start moving immediately
+        Debug.Log($"{gameObject.name} transformed to friendly and started roaming!");
     }
 
     void Flip()

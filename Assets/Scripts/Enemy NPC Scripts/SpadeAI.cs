@@ -27,7 +27,7 @@ public class SpadeAI : MonoBehaviour
 
     [Header("Animation")]
     private Animator animator;
-    private EnemyStunHandler stunHandler; // NEW: Reference to stun handler
+    private EnemyStunHandler stunHandler;
 
     // Animator Parameter Names
     private const string IS_MOVING = "isMoving";
@@ -52,7 +52,7 @@ public class SpadeAI : MonoBehaviour
         targetPoint = pointA.position;
         animator = GetComponent<Animator>();
 
-        // NEW: Get stun handler reference
+        // Get stun handler reference
         stunHandler = GetComponent<EnemyStunHandler>();
 
         // Initialize animator parameters
@@ -64,11 +64,16 @@ public class SpadeAI : MonoBehaviour
 
     void Update()
     {
-        // NEW: Check if stunned - don't execute AI logic
+        // Check if stunned - don't execute AI logic
         if (stunHandler != null && stunHandler.IsStunned())
             return;
 
-        if (isDefeated) return;
+        if (isDefeated)
+        {
+            // NEW: Friendly state roaming
+            FriendlyRoam();
+            return;
+        }
 
         // Update timers
         if (attackTimer > 0)
@@ -106,6 +111,39 @@ public class SpadeAI : MonoBehaviour
             AttackPlayer();
         else
             ChasePlayer();
+    }
+
+    // NEW: Friendly state roaming behavior
+    void FriendlyRoam()
+    {
+        if (!isIdling)
+        {
+            transform.position = Vector2.MoveTowards(transform.position, targetPoint, moveSpeed * Time.deltaTime);
+
+            SetAnimatorBool(IS_MOVING, true);
+
+            // Update facing direction based on movement
+            if (targetPoint.x > transform.position.x && !facingRight)
+                Flip();
+            else if (targetPoint.x < transform.position.x && facingRight)
+                Flip();
+
+            if (Vector2.Distance(transform.position, targetPoint) < 0.2f)
+            {
+                isIdling = true;
+                idleTimer = idleDuration;
+                SetAnimatorBool(IS_MOVING, false);
+            }
+        }
+        else
+        {
+            idleTimer -= Time.deltaTime;
+            if (idleTimer <= 0)
+            {
+                isIdling = false;
+                targetPoint = (targetPoint == pointA.position) ? pointB.position : pointA.position;
+            }
+        }
     }
 
     // --- UPDATED: Separate facing direction logic ---
@@ -277,10 +315,14 @@ public class SpadeAI : MonoBehaviour
         if (hitCoroutine != null)
             StopCoroutine(hitCoroutine);
 
+        // Reset to starting patrol point for friendly roaming
+        targetPoint = pointA.position;
+        isIdling = false;
+
         SetAnimatorBool(IS_HIT, false);
         SetAnimatorBool(IS_FRIENDLY, true);
-        SetAnimatorBool(IS_MOVING, false);
-        Debug.Log($"{gameObject.name} transformed to friendly!");
+        SetAnimatorBool(IS_MOVING, true); // Start moving immediately
+        Debug.Log($"{gameObject.name} transformed to friendly and started roaming!");
     }
 
     // --- FLIP LOGIC ---
