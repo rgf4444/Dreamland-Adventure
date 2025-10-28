@@ -2374,6 +2374,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 9104351698792183355, guid: 3476cfb34a141fb468e44d9219c7c393, type: 3}
+      propertyPath: chargedAttackDuration
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -6792,6 +6796,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Club
       objectReference: {fileID: 0}
+    - target: {fileID: 1293901369245404325, guid: 0bb7976ebc56fdf48b5c68aa6b9444e0, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3205077200510755759, guid: 0bb7976ebc56fdf48b5c68aa6b9444e0, type: 3}
       propertyPath: m_LocalPosition.x
       value: -18.9929
@@ -6896,6 +6904,10 @@ PrefabInstance:
     - target: {fileID: 3496246189113463944, guid: 5b043a8932c03f34dbe71f4246d6e75e, type: 3}
       propertyPath: m_Name
       value: Spade
+      objectReference: {fileID: 0}
+    - target: {fileID: 3496246189113463944, guid: 5b043a8932c03f34dbe71f4246d6e75e, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

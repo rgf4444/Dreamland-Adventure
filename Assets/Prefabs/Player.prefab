@@ -56,7 +56,7 @@ Transform:
   m_GameObject: {fileID: 6329301248614047644}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -0.694, z: 0}
+  m_LocalPosition: {x: 0, y: -0.653, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -211,7 +211,7 @@ BoxCollider2D:
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: 0.027520776, y: 0.205946}
+  m_Offset: {x: 0.027520776, y: 0.23272467}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
@@ -222,7 +222,7 @@ BoxCollider2D:
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 0.8789085, y: 1.7549739}
+  m_Size: {x: 0.8789085, y: 1.7014165}
   m_EdgeRadius: 0
 --- !u!114 &9104351698792183355
 MonoBehaviour:
@@ -243,10 +243,11 @@ MonoBehaviour:
   chargedAttackEnabled: 1
   rangedAttackEnabled: 1
   normalAttackCooldown: 0.5
-  chargedAttackDuration: 2
+  chargedAttackDuration: 1
   chargedAttackCooldown: 1
   postChargeMovementDelay: 0.5
   rangedAttackCooldown: 1.5
+  hitStunDuration: 0.5
   rb: {fileID: 2348400266266343044}
   groundCheck: {fileID: 3937319646177887655}
   groundCheckRadius: 0.2

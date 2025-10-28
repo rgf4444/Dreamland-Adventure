@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 23b3ead85f8e52a448b00e93b1a09216
+guid: 6fc92c70d73e1324a99e9e67c8d4f212
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -97,7 +97,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Spade stun_0
+      name: Hit_0
       rect:
         serializedVersion: 2
         x: 0
@@ -111,14 +111,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: ff181e85475e0d34184d60bf96c73ba2
-      internalID: 773434107
+      spriteID: 4e88b29c10396794b8b370f404e3b79a
+      internalID: -1294272878
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Spade stun_1
+      name: Hit_1
       rect:
         serializedVersion: 2
         x: 128
@@ -132,8 +132,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 5605d287b23e0164f9c8494fec6d7620
-      internalID: -98266441
+      spriteID: 8f5ad73c01f437f45b63fbe92136e437
+      internalID: 1944548651
       vertices: []
       indices: 
       edges: []
@@ -149,8 +149,8 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      Spade stun_0: 773434107
-      Spade stun_1: -98266441
+      Hit_0: -1294272878
+      Hit_1: 1944548651
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

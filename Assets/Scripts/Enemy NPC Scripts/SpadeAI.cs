@@ -27,6 +27,7 @@ public class SpadeAI : MonoBehaviour
 
     [Header("Animation")]
     private Animator animator;
+    private EnemyStunHandler stunHandler; // NEW: Reference to stun handler
 
     // Animator Parameter Names
     private const string IS_MOVING = "isMoving";
@@ -51,6 +52,9 @@ public class SpadeAI : MonoBehaviour
         targetPoint = pointA.position;
         animator = GetComponent<Animator>();
 
+        // NEW: Get stun handler reference
+        stunHandler = GetComponent<EnemyStunHandler>();
+
         // Initialize animator parameters
         SetAnimatorBool(IS_FRIENDLY, false);
         SetAnimatorBool(IS_MOVING, false);
@@ -60,6 +64,10 @@ public class SpadeAI : MonoBehaviour
 
     void Update()
     {
+        // NEW: Check if stunned - don't execute AI logic
+        if (stunHandler != null && stunHandler.IsStunned())
+            return;
+
         if (isDefeated) return;
 
         // Update timers
