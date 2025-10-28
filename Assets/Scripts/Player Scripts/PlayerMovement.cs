@@ -21,6 +21,7 @@ public class PlayerMovement : MonoBehaviour
     private const string IS_ATTACKING = "isAttacking";
     private const string IS_CHARGING = "isCharging";
     private const string ATTACK_TYPE = "attackType";
+    private const string IS_HIT = "isHit"; // New hit parameter
 
     [Header("Attack Unlock Status")]
     public bool normalAttackEnabled = false;
@@ -34,7 +35,11 @@ public class PlayerMovement : MonoBehaviour
     public float postChargeMovementDelay = 0.5f;
     public float rangedAttackCooldown = 1.5f;
 
+    [Header("Hit Settings")]
+    public float hitStunDuration = 0.5f; // New hit stun duration
+
     private bool isAttacking = false;
+    private bool isHit = false; // New hit state
     private float nextNormalAttackTime;
     private float nextChargedAttackTime;
     private float nextRangedAttackTime;
@@ -60,6 +65,7 @@ public class PlayerMovement : MonoBehaviour
     public Transform firePoint;
 
     private Coroutine chargedAttackCoroutine;
+    private Coroutine hitCoroutine; // New hit coroutine
     private bool isCharging = false;
 
     private void Start()
@@ -72,10 +78,14 @@ public class PlayerMovement : MonoBehaviour
         SetAnimatorBool(IS_JUMPING, false);
         SetAnimatorBool(IS_ATTACKING, false);
         SetAnimatorBool(IS_CHARGING, false);
+        SetAnimatorBool(IS_HIT, false); // Initialize hit state
     }
 
     private void Update()
     {
+        // Don't process input if hit or knocked back
+        if (isHit || isKnockedBack) return;
+
         HandleInput();
         HandleAttack();
         UpdateAnimation();
@@ -85,11 +95,11 @@ public class PlayerMovement : MonoBehaviour
     {
         CheckGround();
 
-        if (canMove && !isKnockedBack)
+        if (canMove && !isKnockedBack && !isHit) // Added !isHit check
         {
             Move();
         }
-        else if (!isKnockedBack)
+        else if (!isKnockedBack && !isHit)
         {
             rb.velocity = new Vector2(0, rb.velocity.y);
         }
@@ -97,7 +107,7 @@ public class PlayerMovement : MonoBehaviour
 
     private void HandleInput()
     {
-        if (!canMove || isKnockedBack) return;
+        if (!canMove || isKnockedBack || isHit) return; // Added !isHit check
 
         moveInput = Input.GetAxisRaw("Horizontal");
         isRunning = Input.GetKey(KeyCode.LeftShift);
@@ -121,7 +131,7 @@ public class PlayerMovement : MonoBehaviour
 
     private void UpdateAnimation()
     {
-        if (isAttacking || isKnockedBack) return;
+        if (isAttacking || isKnockedBack || isHit) return; // Added !isHit check
 
         SetAnimatorBool(IS_MOVING, Mathf.Abs(moveInput) > 0.1f);
         SetAnimatorBool(IS_JUMPING, !isGrounded);
@@ -141,7 +151,7 @@ public class PlayerMovement : MonoBehaviour
 
     private void HandleAttack()
     {
-        if (isAttacking || isKnockedBack) return;
+        if (isAttacking || isKnockedBack || isHit) return; // Added !isHit check
 
         if (normalAttackEnabled && Input.GetKeyDown(KeyCode.Alpha1) && Time.time >= nextNormalAttackTime)
         {
@@ -157,6 +167,64 @@ public class PlayerMovement : MonoBehaviour
         {
             StartCoroutine(RangedAttack());
         }
+    }
+
+    // --- NEW: PLAYER HIT ANIMATION METHOD ---
+    public void TriggerHitAnimation()
+    {
+        if (isHit) return;
+
+        // Stop any current hit coroutine
+        if (hitCoroutine != null)
+            StopCoroutine(hitCoroutine);
+
+        // Start hit coroutine
+        hitCoroutine = StartCoroutine(PerformHit());
+    }
+
+    private IEnumerator PerformHit()
+    {
+        isHit = true;
+        SetAnimatorBool(IS_HIT, true);
+
+        // Stop movement and attacks
+        SetAnimatorBool(IS_MOVING, false);
+
+        // Reset all attack states
+        ResetAllAttackStates();
+
+        Debug.Log("Player took hit!");
+
+        // Wait for hit stun duration
+        yield return new WaitForSeconds(hitStunDuration);
+
+        // Reset hit state
+        SetAnimatorBool(IS_HIT, false);
+        isHit = false;
+        hitCoroutine = null;
+    }
+
+    // --- UPDATED: Reset all attack states method ---
+    private void ResetAllAttackStates()
+    {
+        // Stop any running attack coroutines
+        if (chargedAttackCoroutine != null)
+        {
+            StopCoroutine(chargedAttackCoroutine);
+            chargedAttackCoroutine = null;
+        }
+
+        // Reset all animation parameters
+        SetAnimatorBool(IS_ATTACKING, false);
+        SetAnimatorBool(IS_CHARGING, false);
+        SetAnimatorInt(ATTACK_TYPE, 0);
+
+        // Reset all state variables
+        isAttacking = false;
+        isCharging = false;
+        canMove = true;
+
+        Debug.Log("All attack states reset");
     }
 
     private IEnumerator NormalAttack()
@@ -293,31 +361,22 @@ public class PlayerMovement : MonoBehaviour
 
     public void CancelChargedAttack()
     {
-        if (isCharging && chargedAttackCoroutine != null)
+        if (isCharging || isAttacking)
         {
             Debug.Log("Charged attack interrupted!");
-            StopCoroutine(chargedAttackCoroutine);
-            chargedAttackCoroutine = null;
-
-            // Reset animation states
-            SetAnimatorBool(IS_CHARGING, false);
-            SetAnimatorBool(IS_ATTACKING, false);
-
-            isCharging = false;
-            isAttacking = false;
-            canMove = true;
+            ResetAllAttackStates();
             nextChargedAttackTime = Time.time + chargedAttackCooldown;
         }
     }
 
-    private void CheckGround()
-    {
-        isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
-    }
-
+    // --- UPDATED: Also reset attacks on knockback and trigger hit animation ---
     public void ApplyKnockbackRecovery(float duration)
     {
         StopCoroutine(nameof(KnockbackRecovery));
+
+        // Trigger hit animation when knockback occurs
+        TriggerHitAnimation();
+
         StartCoroutine(KnockbackRecovery(duration));
     }
 
@@ -328,6 +387,11 @@ public class PlayerMovement : MonoBehaviour
         yield return new WaitForSeconds(duration);
         isKnockedBack = false;
         canMove = true;
+    }
+
+    private void CheckGround()
+    {
+        isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
     }
 
     private void OnDrawGizmosSelected()

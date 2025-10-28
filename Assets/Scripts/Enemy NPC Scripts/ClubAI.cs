@@ -21,6 +21,7 @@ public class ClubAI : MonoBehaviour
     [Header("References")]
     public Transform player;
     public PlayerHealth playerHealth;
+    private PlayerMovement playerMovement; // NEW: Reference to PlayerMovement
 
     [Header("Animation")]
     private Animator animator;
@@ -29,12 +30,12 @@ public class ClubAI : MonoBehaviour
     private const string IS_MOVING = "isMoving";
     private const string IS_ATTACKING = "isAttacking";
     private const string IS_FRIENDLY = "isFriendly";
-    private const string IS_HIT = "isHit"; // New hit boolean
+    private const string IS_HIT = "isHit";
 
     private Vector3 targetPoint;
     private bool isIdling = false;
     private bool isDefeated = false;
-    private bool isHit = false; // New hit state
+    private bool isHit = false;
     private float idleTimer;
     private bool hasDetectedPlayer = false;
     private bool facingRight = true;
@@ -47,10 +48,16 @@ public class ClubAI : MonoBehaviour
         targetPoint = pointA.position;
         animator = GetComponent<Animator>();
 
+        // NEW: Get PlayerMovement reference
+        if (player != null)
+        {
+            playerMovement = player.GetComponent<PlayerMovement>();
+        }
+
         SetAnimatorBool(IS_FRIENDLY, false);
         SetAnimatorBool(IS_MOVING, false);
         SetAnimatorBool(IS_ATTACKING, false);
-        SetAnimatorBool(IS_HIT, false); // Initialize hit state
+        SetAnimatorBool(IS_HIT, false);
     }
 
     void Update()
@@ -154,6 +161,12 @@ public class ClubAI : MonoBehaviour
         if (playerHealth != null)
         {
             playerHealth.TakeDamage(1);
+
+            // NEW: Trigger player hit animation and interrupt attacks
+            if (playerMovement != null)
+            {
+                playerMovement.TriggerHitAnimation();
+            }
         }
 
         // Wait for rest of animation to play
@@ -179,7 +192,7 @@ public class ClubAI : MonoBehaviour
     private IEnumerator PerformHit()
     {
         isHit = true;
-        SetAnimatorBool(IS_HIT, true); // Set hit boolean to true
+        SetAnimatorBool(IS_HIT, true);
 
         // Stop movement and attack
         SetAnimatorBool(IS_MOVING, false);
@@ -197,7 +210,7 @@ public class ClubAI : MonoBehaviour
         yield return new WaitForSeconds(hitStunDuration);
 
         // Reset hit state
-        SetAnimatorBool(IS_HIT, false); // Set hit boolean to false
+        SetAnimatorBool(IS_HIT, false);
         isHit = false;
         hitCoroutine = null;
     }
@@ -211,7 +224,7 @@ public class ClubAI : MonoBehaviour
     public void TransformToFriendly()
     {
         isDefeated = true;
-        isHit = false; // Ensure hit state is cleared
+        isHit = false;
         hasDetectedPlayer = false;
 
         // Stop any coroutines
