@@ -377,7 +377,7 @@ MonoBehaviour:
   playButton: {fileID: 1141315321}
   optionsButton: {fileID: 0}
   quitButton: {fileID: 672096035}
-  levelSelectionScene: LevelSelect
+  levelSelectionScene: Intro Cutscene
 --- !u!1 &420405030
 GameObject:
   m_ObjectHideFlags: 0
