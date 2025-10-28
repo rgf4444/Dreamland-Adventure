@@ -18,14 +18,19 @@ public class BossHealth : MonoBehaviour
     public int phase4Threshold = 50;
 
     [Header("Defeat Sequence")]
-    public CanvasGroup defeatDialogGroup;  // assign your dialog UI canvas group here
-    public float dialogDelay = 1f;         // wait before showing dialog
-    public float fadeDuration = 1f;        // fade-in speed
-    public float postDialogDelay = 2f;     // delay before scene load
+    public CanvasGroup defeatDialogGroup;
+    public float deathAnimDuration = 2f;   //  how long the death animation lasts
+    public float fadeDuration = 1f;
+    public float postDialogDelay = 2f;
     public string nextSceneName = "GameComplete";
 
-    private bool isDead = false;
-    public int currentPhase = 1;
+    [Header("Animation References")]
+    public Animator animator;              //  assign boss animator in Inspector
+    public string deathTriggerName = "Death"; //  animation trigger name
+
+    [HideInInspector] public bool isDead = false;
+    [HideInInspector] public int currentPhase = 1;
+    [HideInInspector] public bool isInvincible = false;
 
     private void Start()
     {
@@ -40,7 +45,9 @@ public class BossHealth : MonoBehaviour
 
     public void TakeDamage(int amount)
     {
-        if (isDead) return;
+        // Prevent damage if boss is dead or invincible
+        if (isDead || isInvincible)
+            return;
 
         currentHealth -= amount;
         currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
@@ -48,7 +55,7 @@ public class BossHealth : MonoBehaviour
 
         if (currentHealth <= 0)
         {
-            StartCoroutine(DefeatSequence());
+            StartCoroutine(HandleDeath());
             return;
         }
 
@@ -83,28 +90,45 @@ public class BossHealth : MonoBehaviour
             healthText.text = $"{currentHealth} / {maxHealth}";
     }
 
-    private IEnumerator DefeatSequence()
+    private IEnumerator HandleDeath()
     {
         isDead = true;
-        Debug.Log("Boss defeated! Starting end sequence...");
+        Debug.Log("Boss defeated! Playing death animation...");
+
+        // Stop any movement or attacks if needed
+        isInvincible = true;
+
+        // Trigger death animation if animator exists
+        if (animator != null && !string.IsNullOrEmpty(deathTriggerName))
+            animator.ResetTrigger("Teleport");
+            animator.ResetTrigger("Idle");
+            animator.ResetTrigger("Attack");
+            animator.ResetTrigger("JackAttack");
+            animator.SetTrigger(deathTriggerName);
+
+        // Wait for animation to finish
+        yield return new WaitForSeconds(deathAnimDuration);
+
+        // Proceed to defeat sequence (dialog + scene transition)
+        StartCoroutine(DefeatSequence());
+    }
+
+    private IEnumerator DefeatSequence()
+    {
+        Debug.Log("Starting end sequence...");
 
         // Freeze gameplay
         Time.timeScale = 0f;
 
-        // Safety check
         if (defeatDialogGroup == null)
         {
             Debug.LogWarning("Defeat dialog group not assigned in inspector!");
             yield break;
         }
 
-        // Make sure it’s off first, then turn it on after the delay
         defeatDialogGroup.gameObject.SetActive(false);
 
-        // Wait a bit before showing the dialog
-        yield return new WaitForSecondsRealtime(dialogDelay);
-
-        // Activate and fade it in
+        // No more dialogDelay — play immediately after animation
         defeatDialogGroup.gameObject.SetActive(true);
         defeatDialogGroup.alpha = 0f;
         yield return StartCoroutine(FadeIn(defeatDialogGroup));
@@ -112,7 +136,7 @@ public class BossHealth : MonoBehaviour
         // Wait until the player closes the dialog (deactivated externally)
         yield return new WaitUntil(() => defeatDialogGroup == null || !defeatDialogGroup.gameObject.activeSelf);
 
-        // Give a little time before loading next scene
+        // Wait before loading next scene
         yield return new WaitForSecondsRealtime(postDialogDelay);
 
         // Resume time before loading
