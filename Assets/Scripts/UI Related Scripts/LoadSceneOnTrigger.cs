@@ -1,18 +1,27 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class LoadSceneOnTrigger : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    [Header("Scene Settings")]
+    public string sceneToLoad;
+
+    [Header("Player Tag")]
+    public string playerTag = "Player";
+
+    private bool hasTriggered = false;
+
+    private void OnTriggerEnter2D(Collider2D other)
     {
-        
+        if (hasTriggered) return;
+
+        if (other.CompareTag(playerTag))
+        {
+            hasTriggered = true;
+            Debug.Log("Loading scene: " + sceneToLoad);
+            SceneManager.LoadScene(sceneToLoad);
+        }
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+    // Optional: Use OnTriggerEnter for 3D instead of OnTriggerEnter2D
 }
