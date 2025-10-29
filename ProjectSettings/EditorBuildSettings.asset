@@ -33,7 +33,7 @@ EditorBuildSettings:
     path: Assets/Scenes/LevelSelect.unity
     guid: 488c5c23084d24548a11f7fb772ece86
   - enabled: 1
-    path: Assets/Scenes/bossfight_test.unity
+    path: Assets/Scenes/LevelTest4.unity
     guid: 1ed2619c091019b46af9bf68f836858f
   - enabled: 1
     path: Assets/Scenes/GameOver.unity
